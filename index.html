@@ -53,40 +53,34 @@ const wallWidth = 1000; // 10m in cm
 const wallHeight = 500; // 5m in cm
 const wallThickness = 20; // 20cm
 
-// Verwenden von Shape für die Wand mit einem Ausschnitt
-const wallShape = new THREE.Shape();
-wallShape.moveTo(-wallWidth / 2, 0);
-wallShape.lineTo(wallWidth / 2, 0);
-wallShape.lineTo(wallWidth / 2, wallHeight);
-wallShape.lineTo(-wallWidth / 2, wallHeight);
-wallShape.lineTo(-wallWidth / 2, 0);
+// Funktion zum Aktualisieren der Wand mit einem Ausschnitt
+function updateWallWithDoorway(options) {
+  if (scene.getObjectByName('wall')) {
+    scene.remove(scene.getObjectByName('wall'));
+  }
 
-// Ausschnitt für den Durchgang hinzufügen
-const doorwayWidth = 200; // 2m in cm
-const doorwayHeight = 300; // 3m in cm
-const doorwayX = 0; // Mittig in der Wand
-const doorwayY = 0; // Startet am Boden
+  const wallShape = new THREE.Shape();
+  wallShape.moveTo(-wallWidth / 2, 0);
+  wallShape.lineTo(wallWidth / 2, 0);
+  wallShape.lineTo(wallWidth / 2, wallHeight);
+  wallShape.lineTo(-wallWidth / 2, wallHeight);
+  wallShape.lineTo(-wallWidth / 2, 0);
 
-const doorwayShape = new THREE.Path();
-doorwayShape.moveTo(doorwayX - doorwayWidth / 2, doorwayY);
-doorwayShape.lineTo(doorwayX + doorwayWidth / 2, doorwayY);
-doorwayShape.lineTo(doorwayX + doorwayWidth / 2, doorwayY + doorwayHeight);
-doorwayShape.lineTo(doorwayX - doorwayWidth / 2, doorwayY + doorwayHeight);
-doorwayShape.lineTo(doorwayX - doorwayWidth / 2, doorwayY);
-wallShape.holes.push(doorwayShape);
+  const doorwayShape = new THREE.Path();
+  doorwayShape.moveTo(-options.doorwayWidth / 2, 0);
+  doorwayShape.lineTo(options.doorwayWidth / 2, 0);
+  doorwayShape.lineTo(options.doorwayWidth / 2, options.doorwayHeight);
+  doorwayShape.lineTo(-options.doorwayWidth / 2, options.doorwayHeight);
+  doorwayShape.lineTo(-options.doorwayWidth / 2, 0);
+  wallShape.holes.push(doorwayShape);
 
-const wallGeometry = new THREE.ExtrudeGeometry(wallShape, { depth: wallThickness, bevelEnabled: false });
-const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
-const wall = new THREE.Mesh(wallGeometry, wallMaterial);
-wall.position.z = -wallThickness / 2;
-scene.add(wall);
-
-// Licht hinzufügen
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-scene.add(ambientLight);
-const pointLight = new THREE.PointLight(0xffffff, 1);
-pointLight.position.set(1000, 1000, 1000); // 10m x 10m x 10m in cm
-scene.add(pointLight);
+  const wallGeometry = new THREE.ExtrudeGeometry(wallShape, { depth: wallThickness, bevelEnabled: false });
+  const wallMaterial = new THREE.MeshStandardMaterial({ color: options.wallColor });
+  const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+  wall.position.z = -wallThickness / 2;
+  wall.name = 'wall';
+  scene.add(wall);
+}
 
 // Funktion zum Erstellen eines LOFT French Elements
 function createLoftFrenchElement(width, height, depth, position, material) {
@@ -116,33 +110,33 @@ function addSwingDoor(options) {
 
   // Zarge erstellen
   const zargeMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
-  const zargeThickness = options.zargeType === 'standard' ? 50 : 20;
-  const zargeDepth = options.zargeType === 'standard' ? 50 : 20;
+  const zargeWidth = options.zargeType === 'standard' ? 5 : 2; // Breite der Zarge
+  const zargeDepth = 5; // Tiefe der Zarge
 
-  const topZarge = createLoftFrenchElement(doorWidth, zargeThickness, zargeDepth, {
+  const topZarge = createLoftFrenchElement(doorWidth, zargeWidth, zargeDepth, {
     x: 0,
-    y: options.doorwayHeight - zargeThickness / 2,
-    z: wall.position.z - wallThickness / 2 - zargeDepth / 2
+    y: options.doorwayHeight - zargeWidth / 2,
+    z: -wallThickness / 2
   }, zargeMaterial);
 
-  const leftZarge = createLoftFrenchElement(zargeThickness, doorHeight, zargeDepth, {
-    x: -doorWidth / 2 - zargeThickness / 2,
+  const leftZarge = createLoftFrenchElement(zargeWidth, doorHeight, zargeDepth, {
+    x: -doorWidth / 2 - zargeWidth / 2,
     y: doorHeight / 2,
-    z: wall.position.z - wallThickness / 2 - zargeDepth / 2
+    z: -wallThickness / 2
   }, zargeMaterial);
 
-  const rightZarge = createLoftFrenchElement(zargeThickness, doorHeight, zargeDepth, {
-    x: doorWidth / 2 + zargeThickness / 2,
+  const rightZarge = createLoftFrenchElement(zargeWidth, doorHeight, zargeDepth, {
+    x: doorWidth / 2 + zargeWidth / 2,
     y: doorHeight / 2,
-    z: wall.position.z - wallThickness / 2 - zargeDepth / 2
+    z: -wallThickness / 2
   }, zargeMaterial);
 
   // Türblatt erstellen
   const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
-  const door = createLoftFrenchElement(doorWidth - zargeThickness, doorHeight - zargeThickness, 4, {
+  const door = createLoftFrenchElement(doorWidth - zargeWidth * 2, doorHeight - zargeWidth, 4, {
     x: 0,
     y: doorHeight / 2,
-    z: wall.position.z - wallThickness / 2 - zargeDepth - 2
+    z: -wallThickness / 2 - zargeDepth / 2
   }, doorMaterial);
 
   currentElement = new THREE.Group();
@@ -161,7 +155,7 @@ function addSlidingDoor(options) {
   const slidingDoor = createLoftFrenchElement(doorWidth, doorHeight, 4, {
     x: 0,
     y: doorHeight / 2,
-    z: wall.position.z - wallThickness - 1
+    z: wallThickness / 2 + 1 // Vor der Wand
   }, doorMaterial);
 
   currentElement = slidingDoor;
@@ -179,7 +173,7 @@ function addPartition(options) {
   const partition = createLoftFrenchElement(partitionWidth, partitionHeight, 4, {
     x: 0,
     y: partitionHeight / 2,
-    z: wall.position.z - wallThickness / 2 - 2
+    z: -wallThickness / 2 - 2
   }, partitionMaterial);
 
   currentElement = partition;
@@ -198,24 +192,23 @@ const options = {
 
 gui.add(options, 'doorwayWidth', 100, 500).onChange((value) => {
   options.doorwayWidth = value;
-  if (currentElement) {
-    if (options.elementType === 'swing door') addSwingDoor(options);
-    if (options.elementType === 'sliding door') addSlidingDoor(options);
-    if (options.elementType === 'partition') addPartition(options);
-  }
+  updateWallWithDoorway(options);
+  if (options.elementType === 'swing door') addSwingDoor(options);
+  if (options.elementType === 'sliding door') addSlidingDoor(options);
+  if (options.elementType === 'partition') addPartition(options);
 });
 
 gui.add(options, 'doorwayHeight', 200, 500).onChange((value) => {
   options.doorwayHeight = value;
-  if (currentElement) {
-    if (options.elementType === 'swing door') addSwingDoor(options);
-    if (options.elementType === 'sliding door') addSlidingDoor(options);
-    if (options.elementType === 'partition') addPartition(options);
-  }
+  updateWallWithDoorway(options);
+  if (options.elementType === 'swing door') addSwingDoor(options);
+  if (options.elementType === 'sliding door') addSlidingDoor(options);
+  if (options.elementType === 'partition') addPartition(options);
 });
 
 gui.addColor(options, 'wallColor').onChange((value) => {
-  wallMaterial.color.set(value);
+  options.wallColor = value;
+  updateWallWithDoorway(options);
 });
 
 gui.add(options, 'elementType', ['none', 'swing door', 'sliding door', 'partition']).onChange((value) => {
@@ -227,6 +220,9 @@ gui.add(options, 'elementType', ['none', 'swing door', 'sliding door', 'partitio
 });
 
 gui.add(options, 'zargeType', ['standard', 'slim']);
+
+// Initial Wand mit Durchgang erstellen
+updateWallWithDoorway(options);
 
 // Animation-Schleife
 function animate() {

@@ -19,7 +19,7 @@
 // Importiere Three.js und dat.GUI
 import * as THREE from 'three';
 import { GUI } from 'dat.gui';
-import { OrbitControls } from 'OrbitControls';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 // Szene, Kamera und Renderer erstellen
 const scene = new THREE.Scene();
@@ -37,10 +37,8 @@ const controls = new OrbitControls(camera, renderer.domElement);
 const cm = 100;
 
 // Boden erstellen
-const textureLoader = new THREE.TextureLoader();
-const woodTexture = textureLoader.load('https://threejs.org/examples/textures/wood.jpg');
 const floorGeometry = new THREE.PlaneGeometry(2000, 2000); // 20m x 20m in cm
-const floorMaterial = new THREE.MeshStandardMaterial({ map: woodTexture });
+const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 }); // Hellbraune Farbe für den Boden
 const floor = new THREE.Mesh(floorGeometry, floorMaterial);
 floor.rotation.x = -Math.PI / 2;
 scene.add(floor);
@@ -48,11 +46,28 @@ scene.add(floor);
 // Wand erstellen
 const wallHeight = 500; // 5m in cm
 const wallWidth = 1000; // 10m in cm
-const wallGeometry = new THREE.BoxGeometry(wallWidth, wallHeight, 20); // Tiefe 20cm
+const wallThickness = 20; // 20cm
+const wallGeometry = new THREE.BoxGeometry(wallWidth, wallHeight, wallThickness);
 const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
 const wall = new THREE.Mesh(wallGeometry, wallMaterial);
 wall.position.y = wallHeight / 2;
 scene.add(wall);
+
+// Durchgang erstellen (Ausschnitt in der Wand)
+const doorwayWidth = 200; // 2m in cm
+const doorwayHeight = 300; // 3m in cm
+const doorwayGeometry = new THREE.BoxGeometry(doorwayWidth, doorwayHeight, wallThickness + 1);
+const doorwayMaterial = new THREE.MeshStandardMaterial({ color: 0x000000, transparent: true, opacity: 0 });
+const doorway = new THREE.Mesh(doorwayGeometry, doorwayMaterial);
+doorway.position.y = doorwayHeight / 2;
+scene.add(doorway);
+
+// Boolean Operation: Wand mit Ausschnitt
+const wallCSG = new THREE.BufferGeometry().fromGeometry(new THREE.Geometry().fromBufferGeometry(wallGeometry));
+const doorwayCSG = new THREE.BufferGeometry().fromGeometry(new THREE.Geometry().fromBufferGeometry(doorwayGeometry));
+const resultGeometry = THREE.CSG.subtract(wallCSG, doorwayCSG);
+const finalWall = new THREE.Mesh(resultGeometry, wallMaterial);
+scene.add(finalWall);
 
 // Licht hinzufügen
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -60,14 +75,6 @@ scene.add(ambientLight);
 const pointLight = new THREE.PointLight(0xffffff, 1);
 pointLight.position.set(1000, 1000, 1000); // 10m x 10m x 10m in cm
 scene.add(pointLight);
-
-// Durchgang erstellen
-const doorway = new THREE.Group();
-const doorwayGeometry = new THREE.BoxGeometry(200, 300, 20); // 2m x 3m x 20cm in cm
-const doorwayMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
-const doorwayMesh = new THREE.Mesh(doorwayGeometry, doorwayMaterial);
-doorway.add(doorwayMesh);
-scene.add(doorway);
 
 // Position der Kamera
 camera.position.set(0, 500, 1500); // 5m hoch und 15m entfernt in cm
@@ -81,11 +88,11 @@ const options = {
 };
 
 gui.add(options, 'doorwayWidth', 100, 500).onChange((value) => { // Bereich: 1m bis 5m in cm
-  doorwayMesh.scale.x = value / 200;
+  doorway.scale.x = value / 200;
 });
 
 gui.add(options, 'doorwayHeight', 200, 500).onChange((value) => { // Bereich: 2m bis 5m in cm
-  doorwayMesh.scale.y = value / 300;
+  doorway.scale.y = value / 300;
 });
 
 gui.addColor(options, 'wallColor').onChange((value) => {

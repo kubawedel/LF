@@ -49,9 +49,9 @@ floor.position.y = 0; // Position des Bodens
 scene.add(floor);
 
 // Wand mit Ausschnitt erstellen
-const wallWidth = 1000; // 10m in cm
-const wallHeight = 500; // 5m in cm
-const wallThickness = 20; // 20cm
+const wallWidth = 2000; // 20m in cm
+const wallHeight = 1000; // 10m in cm
+const wallThickness = 30; // 30cm
 
 // Licht hinzufügen
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -162,7 +162,7 @@ function addSlidingDoor(options) {
   const slidingDoor = createLoftFrenchElement(doorWidth, doorHeight, 4, {
     x: 0,
     y: doorHeight / 2,
-    z: wallThickness / 2 + 1 // Vor der Wand
+    z: wallThickness / 2 + 3 // Vor der Wand
   }, doorMaterial);
 
   currentElement = slidingDoor;
@@ -180,7 +180,7 @@ function addPartition(options) {
   const partition = createLoftFrenchElement(partitionWidth, partitionHeight, 4, {
     x: 0,
     y: partitionHeight / 2,
-    z: -wallThickness / 2 - 2
+    z: -wallThickness / 2 
   }, partitionMaterial);
 
   currentElement = partition;
@@ -190,14 +190,14 @@ function addPartition(options) {
 // GUI-Konfiguration
 const gui = new GUI();
 const options = {
-  doorwayWidth: 200, // Initialwert 2m in cm
-  doorwayHeight: 300, // Initialwert 3m in cm
+  doorwayWidth: 100, // Initialwert in cm
+  doorwayHeight: 210, // Initialwert in cm
   wallColor: '#ffffff',
   elementType: 'none', // Typ des Elements
   zargeType: 'standard' // Zarge Typ
 };
 
-gui.add(options, 'doorwayWidth', 100, 500).onChange((value) => {
+gui.add(options, 'doorwayWidth', 50, 300).onChange((value) => {
   options.doorwayWidth = value;
   updateWallWithDoorway(options);
   if (options.elementType === 'swing door') addSwingDoor(options);
@@ -205,7 +205,7 @@ gui.add(options, 'doorwayWidth', 100, 500).onChange((value) => {
   if (options.elementType === 'partition') addPartition(options);
 });
 
-gui.add(options, 'doorwayHeight', 200, 500).onChange((value) => {
+gui.add(options, 'doorwayHeight', 190, 300).onChange((value) => {
   options.doorwayHeight = value;
   updateWallWithDoorway(options);
   if (options.elementType === 'swing door') addSwingDoor(options);

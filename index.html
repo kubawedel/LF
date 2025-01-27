@@ -84,60 +84,112 @@ const pointLight = new THREE.PointLight(0xffffff, 1);
 pointLight.position.set(1000, 1000, 1000); // 10m x 10m x 10m in cm
 scene.add(pointLight);
 
-// Position der Kamera
-camera.position.set(0, 500, 1500); // 5m hoch und 15m entfernt in cm
+// Funktion zum Erstellen eines LOFT French Elements
+function createLoftFrenchElement(width, height, depth, position, material) {
+  const geometry = new THREE.BoxGeometry(width, height, depth);
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.position.set(position.x, position.y, position.z);
+  return mesh;
+}
+
+// Funktion zum Hinzufügen einer Drehtür
+function addSwingDoor(options) {
+  const doorWidth = options.doorwayWidth - 10; // 5mm Abstand zu beiden Seiten
+  const doorHeight = options.doorwayHeight - 5; // 5mm Abstand oben
+
+  // Zarge erstellen
+  const zargeMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
+  const zargeThickness = options.zargeType === 'standard' ? 50 : 20;
+  const zargeDepth = 50; // 5cm Tiefe
+
+  const topZarge = createLoftFrenchElement(doorWidth, zargeThickness, zargeDepth, {
+    x: 0,
+    y: options.doorwayHeight - zargeThickness / 2,
+    z: wall.position.z - wallThickness / 2 - zargeDepth / 2
+  }, zargeMaterial);
+
+  const leftZarge = createLoftFrenchElement(zargeThickness, doorHeight, zargeDepth, {
+    x: -doorWidth / 2 - zargeThickness / 2,
+    y: doorHeight / 2,
+    z: wall.position.z - wallThickness / 2 - zargeDepth / 2
+  }, zargeMaterial);
+
+  const rightZarge = createLoftFrenchElement(zargeThickness, doorHeight, zargeDepth, {
+    x: doorWidth / 2 + zargeThickness / 2,
+    y: doorHeight / 2,
+    z: wall.position.z - wallThickness / 2 - zargeDepth / 2
+  }, zargeMaterial);
+
+  // Türblatt erstellen
+  const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+  const door = createLoftFrenchElement(doorWidth - zargeThickness, doorHeight - zargeThickness, 4, {
+    x: 0,
+    y: doorHeight / 2,
+    z: wall.position.z - wallThickness / 2 - zargeDepth - 2
+  }, doorMaterial);
+
+  scene.add(topZarge, leftZarge, rightZarge, door);
+}
+
+// Funktion zum Hinzufügen einer Schiebetür
+function addSlidingDoor(options) {
+  const doorWidth = options.doorwayWidth + 20; // 2cm größer in der Breite
+  const doorHeight = options.doorwayHeight + 10; // 1cm größer in der Höhe
+  const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x666666 });
+
+  const slidingDoor = createLoftFrenchElement(doorWidth, doorHeight, 4, {
+    x: 0,
+    y: doorHeight / 2,
+    z: wall.position.z - wallThickness - 1
+  }, doorMaterial);
+
+  scene.add(slidingDoor);
+}
+
+// Funktion zum Hinzufügen einer Trennwand
+function addPartition(options) {
+  const partitionWidth = options.doorwayWidth;
+  const partitionHeight = options.doorwayHeight;
+  const partitionMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
+
+  const partition = createLoftFrenchElement(partitionWidth, partitionHeight, 4, {
+    x: 0,
+    y: partitionHeight / 2,
+    z: wall.position.z - wallThickness / 2 - 2
+  }, partitionMaterial);
+
+  scene.add(partition);
+}
 
 // GUI-Konfiguration
 const gui = new GUI();
 const options = {
   doorwayWidth: 200, // Initialwert 2m in cm
   doorwayHeight: 300, // Initialwert 3m in cm
-  wallColor: '#ffffff'
+  wallColor: '#ffffff',
+  elementType: 'none', // Typ des Elements
+  zargeType: 'standard' // Zarge Typ
 };
 
 gui.add(options, 'doorwayWidth', 100, 500).onChange((value) => {
-  const newWallShape = new THREE.Shape();
-  newWallShape.moveTo(-wallWidth / 2, 0);
-  newWallShape.lineTo(wallWidth / 2, 0);
-  newWallShape.lineTo(wallWidth / 2, wallHeight);
-  newWallShape.lineTo(-wallWidth / 2, wallHeight);
-  newWallShape.lineTo(-wallWidth / 2, 0);
-
-  const newDoorwayShape = new THREE.Path();
-  newDoorwayShape.moveTo(doorwayX - value / 2, doorwayY);
-  newDoorwayShape.lineTo(doorwayX + value / 2, doorwayY);
-  newDoorwayShape.lineTo(doorwayX + value / 2, doorwayY + doorwayHeight);
-  newDoorwayShape.lineTo(doorwayX - value / 2, doorwayY + doorwayHeight);
-  newDoorwayShape.lineTo(doorwayX - value / 2, doorwayY);
-  newWallShape.holes.push(newDoorwayShape);
-
-  wall.geometry.dispose();
-  wall.geometry = new THREE.ExtrudeGeometry(newWallShape, { depth: wallThickness, bevelEnabled: false });
+  options.doorwayWidth = value;
 });
 
 gui.add(options, 'doorwayHeight', 200, 500).onChange((value) => {
-  const newWallShape = new THREE.Shape();
-  newWallShape.moveTo(-wallWidth / 2, 0);
-  newWallShape.lineTo(wallWidth / 2, 0);
-  newWallShape.lineTo(wallWidth / 2, wallHeight);
-  newWallShape.lineTo(-wallWidth / 2, wallHeight);
-  newWallShape.lineTo(-wallWidth / 2, 0);
-
-  const newDoorwayShape = new THREE.Path();
-  newDoorwayShape.moveTo(doorwayX - doorwayWidth / 2, doorwayY);
-  newDoorwayShape.lineTo(doorwayX + doorwayWidth / 2, doorwayY);
-  newDoorwayShape.lineTo(doorwayX + doorwayWidth / 2, doorwayY + value);
-  newDoorwayShape.lineTo(doorwayX - doorwayWidth / 2, doorwayY + value);
-  newDoorwayShape.lineTo(doorwayX - doorwayWidth / 2, doorwayY);
-  newWallShape.holes.push(newDoorwayShape);
-
-  wall.geometry.dispose();
-  wall.geometry = new THREE.ExtrudeGeometry(newWallShape, { depth: wallThickness, bevelEnabled: false });
+  options.doorwayHeight = value;
 });
 
 gui.addColor(options, 'wallColor').onChange((value) => {
   wallMaterial.color.set(value);
 });
+
+gui.add(options, 'elementType', ['none', 'swing door', 'sliding door', 'partition']).onChange((value) => {
+  if (value === 'swing door') addSwingDoor(options);
+  if (value === 'sliding door') addSlidingDoor(options);
+  if (value === 'partition') addPartition(options);
+});
+
+gui.add(options, 'zargeType', ['standard', 'slim']);
 
 // Animation-Schleife
 function animate() {
@@ -147,6 +199,7 @@ function animate() {
 }
 
 animate();
+
         
     </script>
 </body>

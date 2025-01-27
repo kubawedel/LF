@@ -96,15 +96,28 @@ function createLoftFrenchElement(width, height, depth, position, material) {
   return mesh;
 }
 
+// Aktuell hinzugefügtes Element (zum Entfernen bei Wechsel)
+let currentElement = null;
+
+// Funktion zum Entfernen des aktuellen Elements
+function removeCurrentElement() {
+  if (currentElement) {
+    scene.remove(currentElement);
+    currentElement = null;
+  }
+}
+
 // Funktion zum Hinzufügen einer Drehtür
 function addSwingDoor(options) {
+  removeCurrentElement();
+
   const doorWidth = options.doorwayWidth - 10; // 5mm Abstand zu beiden Seiten
   const doorHeight = options.doorwayHeight - 5; // 5mm Abstand oben
 
   // Zarge erstellen
   const zargeMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
   const zargeThickness = options.zargeType === 'standard' ? 50 : 20;
-  const zargeDepth = 50; // 5cm Tiefe
+  const zargeDepth = options.zargeType === 'standard' ? 50 : 20;
 
   const topZarge = createLoftFrenchElement(doorWidth, zargeThickness, zargeDepth, {
     x: 0,
@@ -132,11 +145,15 @@ function addSwingDoor(options) {
     z: wall.position.z - wallThickness / 2 - zargeDepth - 2
   }, doorMaterial);
 
-  scene.add(topZarge, leftZarge, rightZarge, door);
+  currentElement = new THREE.Group();
+  currentElement.add(topZarge, leftZarge, rightZarge, door);
+  scene.add(currentElement);
 }
 
 // Funktion zum Hinzufügen einer Schiebetür
 function addSlidingDoor(options) {
+  removeCurrentElement();
+
   const doorWidth = options.doorwayWidth + 20; // 2cm größer in der Breite
   const doorHeight = options.doorwayHeight + 10; // 1cm größer in der Höhe
   const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x666666 });
@@ -147,11 +164,14 @@ function addSlidingDoor(options) {
     z: wall.position.z - wallThickness - 1
   }, doorMaterial);
 
-  scene.add(slidingDoor);
+  currentElement = slidingDoor;
+  scene.add(currentElement);
 }
 
 // Funktion zum Hinzufügen einer Trennwand
 function addPartition(options) {
+  removeCurrentElement();
+
   const partitionWidth = options.doorwayWidth;
   const partitionHeight = options.doorwayHeight;
   const partitionMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
@@ -162,7 +182,8 @@ function addPartition(options) {
     z: wall.position.z - wallThickness / 2 - 2
   }, partitionMaterial);
 
-  scene.add(partition);
+  currentElement = partition;
+  scene.add(currentElement);
 }
 
 // GUI-Konfiguration
@@ -177,10 +198,20 @@ const options = {
 
 gui.add(options, 'doorwayWidth', 100, 500).onChange((value) => {
   options.doorwayWidth = value;
+  if (currentElement) {
+    if (options.elementType === 'swing door') addSwingDoor(options);
+    if (options.elementType === 'sliding door') addSlidingDoor(options);
+    if (options.elementType === 'partition') addPartition(options);
+  }
 });
 
 gui.add(options, 'doorwayHeight', 200, 500).onChange((value) => {
   options.doorwayHeight = value;
+  if (currentElement) {
+    if (options.elementType === 'swing door') addSwingDoor(options);
+    if (options.elementType === 'sliding door') addSlidingDoor(options);
+    if (options.elementType === 'partition') addPartition(options);
+  }
 });
 
 gui.addColor(options, 'wallColor').onChange((value) => {
@@ -188,16 +219,14 @@ gui.addColor(options, 'wallColor').onChange((value) => {
 });
 
 gui.add(options, 'elementType', ['none', 'swing door', 'sliding door', 'partition']).onChange((value) => {
+  options.elementType = value;
+  if (value === 'none') removeCurrentElement();
   if (value === 'swing door') addSwingDoor(options);
   if (value === 'sliding door') addSlidingDoor(options);
   if (value === 'partition') addPartition(options);
 });
 
 gui.add(options, 'zargeType', ['standard', 'slim']);
-
-// Debugging: Kamera und Szene auf der Konsole anzeigen
-console.log("Kamera:", camera);
-console.log("Szene:", scene);
 
 // Animation-Schleife
 function animate() {

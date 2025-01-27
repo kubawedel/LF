@@ -41,6 +41,7 @@ const floorGeometry = new THREE.PlaneGeometry(2000, 2000); // 20m x 20m in cm
 const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 }); // Hellbraune Farbe für den Boden
 const floor = new THREE.Mesh(floorGeometry, floorMaterial);
 floor.rotation.x = -Math.PI / 2;
+floor.position.y = 0; // Position des Bodens am Anfang der Wand
 scene.add(floor);
 
 // Wand mit Ausschnitt erstellen
@@ -50,17 +51,17 @@ const wallThickness = 20; // 20cm
 
 // Verwenden von Shape für die Wand mit einem Ausschnitt
 const wallShape = new THREE.Shape();
-wallShape.moveTo(-wallWidth / 2, -wallHeight / 2);
-wallShape.lineTo(wallWidth / 2, -wallHeight / 2);
-wallShape.lineTo(wallWidth / 2, wallHeight / 2);
-wallShape.lineTo(-wallWidth / 2, wallHeight / 2);
-wallShape.lineTo(-wallWidth / 2, -wallHeight / 2);
+wallShape.moveTo(-wallWidth / 2, 0);
+wallShape.lineTo(wallWidth / 2, 0);
+wallShape.lineTo(wallWidth / 2, wallHeight);
+wallShape.lineTo(-wallWidth / 2, wallHeight);
+wallShape.lineTo(-wallWidth / 2, 0);
 
 // Ausschnitt für den Durchgang hinzufügen
 const doorwayWidth = 200; // 2m in cm
 const doorwayHeight = 300; // 3m in cm
 const doorwayX = 0; // Mittig in der Wand
-const doorwayY = -wallHeight / 2;
+const doorwayY = 0; // Startet am Boden
 
 const doorwayShape = new THREE.Path();
 doorwayShape.moveTo(doorwayX - doorwayWidth / 2, doorwayY);
@@ -95,15 +96,43 @@ const options = {
 };
 
 gui.add(options, 'doorwayWidth', 100, 500).onChange((value) => {
-  doorwayShape.curves[0].x = value / 2;
-  wallGeometry.dispose();
-  wallGeometry.copy(new THREE.ExtrudeGeometry(wallShape, { depth: wallThickness, bevelEnabled: false }));
+  const newWallShape = new THREE.Shape();
+  newWallShape.moveTo(-wallWidth / 2, 0);
+  newWallShape.lineTo(wallWidth / 2, 0);
+  newWallShape.lineTo(wallWidth / 2, wallHeight);
+  newWallShape.lineTo(-wallWidth / 2, wallHeight);
+  newWallShape.lineTo(-wallWidth / 2, 0);
+
+  const newDoorwayShape = new THREE.Path();
+  newDoorwayShape.moveTo(doorwayX - value / 2, doorwayY);
+  newDoorwayShape.lineTo(doorwayX + value / 2, doorwayY);
+  newDoorwayShape.lineTo(doorwayX + value / 2, doorwayY + doorwayHeight);
+  newDoorwayShape.lineTo(doorwayX - value / 2, doorwayY + doorwayHeight);
+  newDoorwayShape.lineTo(doorwayX - value / 2, doorwayY);
+  newWallShape.holes.push(newDoorwayShape);
+
+  wall.geometry.dispose();
+  wall.geometry = new THREE.ExtrudeGeometry(newWallShape, { depth: wallThickness, bevelEnabled: false });
 });
 
 gui.add(options, 'doorwayHeight', 200, 500).onChange((value) => {
-  doorwayShape.curves[1].y = value;
-  wallGeometry.dispose();
-  wallGeometry.copy(new THREE.ExtrudeGeometry(wallShape, { depth: wallThickness, bevelEnabled: false }));
+  const newWallShape = new THREE.Shape();
+  newWallShape.moveTo(-wallWidth / 2, 0);
+  newWallShape.lineTo(wallWidth / 2, 0);
+  newWallShape.lineTo(wallWidth / 2, wallHeight);
+  newWallShape.lineTo(-wallWidth / 2, wallHeight);
+  newWallShape.lineTo(-wallWidth / 2, 0);
+
+  const newDoorwayShape = new THREE.Path();
+  newDoorwayShape.moveTo(doorwayX - doorwayWidth / 2, doorwayY);
+  newDoorwayShape.lineTo(doorwayX + doorwayWidth / 2, doorwayY);
+  newDoorwayShape.lineTo(doorwayX + doorwayWidth / 2, doorwayY + value);
+  newDoorwayShape.lineTo(doorwayX - doorwayWidth / 2, doorwayY + value);
+  newDoorwayShape.lineTo(doorwayX - doorwayWidth / 2, doorwayY);
+  newWallShape.holes.push(newDoorwayShape);
+
+  wall.geometry.dispose();
+  wall.geometry = new THREE.ExtrudeGeometry(newWallShape, { depth: wallThickness, bevelEnabled: false });
 });
 
 gui.addColor(options, 'wallColor').onChange((value) => {

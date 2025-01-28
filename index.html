@@ -108,28 +108,60 @@ function removeCurrentElement() {
   }
 }
 
-// Funktion zum Hinzufügen von Sprossen und Glas
-function addSprossenAndGlass(parent, width, height, sprossenRows, sprossenCols, materialGlass, materialSprosse) {
-  const cellWidth = width / sprossenCols;
-  const cellHeight = height / sprossenRows;
+// Funktion zum Erstellen eines Türrahmens mit Glas und Sprossen
+function createDoorWithGlassAndFrame(width, height, depth, material, sprossenRows, sprossenCols) {
+  const group = new THREE.Group();
 
-  // Glasfläche erstellen
-  const glass = createLoftFrenchElement(width, height, 0.5, { x: 0, y: height / 2, z: 0.5 }, materialGlass);
-  parent.add(glass);
+  // Umlaufender Rahmen
+  const frameThickness = 2;
+  const frameDepth = 4;
+  const outerFrame = new THREE.BoxGeometry(width, height, frameDepth);
+  const innerFrame = new THREE.BoxGeometry(width - 2 * frameThickness, height - 2 * frameThickness, frameDepth);
 
-  // Sprossen horizontal hinzufügen
-  for (let i = 1; i < sprossenRows; i++) {
-    const y = i * cellHeight - height / 2;
-    const sprosse = createLoftFrenchElement(width, 0.5, 0.5, { x: 0, y: y, z: 0.5 }, materialSprosse);
-    parent.add(sprosse);
+  const outerFrameMesh = new THREE.Mesh(outerFrame, material);
+  const innerFrameMesh = new THREE.Mesh(innerFrame, material);
+
+  const frameBSP = new THREE.BufferGeometry().copy(outerFrameMesh.geometry);
+  const innerBSP = new THREE.BufferGeometry().copy(innerFrameMesh.geometry);
+  const frame = new THREE.Mesh(new THREE.BufferGeometry().fromGeometry(frameBSP));
+  group.add(frame);
+
+  // Glas
+  const glassThickness = 1;
+  const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, transparent: true, opacity: 0.5 });
+  const glassGeometry = new THREE.BoxGeometry(
+    width - 2 * frameThickness,
+    height - 2 * frameThickness,
+    glassThickness
+  );
+  const glass = new THREE.Mesh(glassGeometry, glassMaterial);
+  group.add(glass);
+
+  // Sprossen
+  const sprossenMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
+  const sprossenWidth = 0.2;
+
+  for (let i = 0; i <= sprossenRows; i++) {
+    const y = -height / 2 + (i * height) / sprossenRows;
+    const horizontalSprosse = new THREE.Mesh(
+      new THREE.BoxGeometry(width - 2 * frameThickness, sprossenWidth, glassThickness),
+      sprossenMaterial
+    );
+    horizontalSprosse.position.set(0, y, 0);
+    group.add(horizontalSprosse);
   }
 
-  // Sprossen vertikal hinzufügen
-  for (let i = 1; i < sprossenCols; i++) {
-    const x = i * cellWidth - width / 2;
-    const sprosse = createLoftFrenchElement(0.5, height, 0.5, { x: x, y: height / 2, z: 0.5 }, materialSprosse);
-    parent.add(sprosse);
+  for (let j = 0; j <= sprossenCols; j++) {
+    const x = -width / 2 + (j * width) / sprossenCols;
+    const verticalSprosse = new THREE.Mesh(
+      new THREE.BoxGeometry(sprossenWidth, height - 2 * frameThickness, glassThickness),
+      sprossenMaterial
+    );
+    verticalSprosse.position.set(x, 0, 0);
+    group.add(verticalSprosse);
   }
+
+  return group;
 }
 
 // Drehtür
@@ -176,7 +208,7 @@ function addSwingDoor(options) {
 
   // Create the Door
   const door = new THREE.Group();
-  addSprossenAndGlass(door, doorWidth, doorHeight, sprossenRows, sprossenCols, glassMaterial, sprosseMaterial);
+  createDoorWithGlassAndFrame(door, doorWidth, doorHeight, sprossenRows, sprossenCols, glassMaterial, sprosseMaterial);
   door.position.set(0, doorHeight / 2 + 1, 0);
 
   // Group Zarge and Door
@@ -195,7 +227,7 @@ function addSlidingDoor(options) {
   const sprosseMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
 
   const slidingDoor = new THREE.Group();
-  addSprossenAndGlass(slidingDoor, doorWidth, doorHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
+  createDoorWithGlassAndFrame(slidingDoor, doorWidth, doorHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
   slidingDoor.position.set(0, doorHeight / 2, wallThickness / 2 + 3); // Vor der Wand
 
   currentElement = slidingDoor;
@@ -212,7 +244,7 @@ function addPartition(options) {
   const sprosseMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
 
   const partition = new THREE.Group();
-  addSprossenAndGlass(partition, partitionWidth, partitionHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
+  createDoorWithGlassAndFrame(partition, partitionWidth, partitionHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
   partition.position.set(0, partitionHeight / 2, 0);
 
   currentElement = partition;

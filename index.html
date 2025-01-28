@@ -191,8 +191,9 @@ function addSwingDoor(options) {
   const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, opacity: 0.5, transparent: true });
   const sprosseMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
 
-  // Create the Door
-  const swingDoor = createDoorWithGlassAndFrame(
+    // Create the Door
+    const door = new THREE.Group();
+    createDoorWithGlassAndFrame(
     options.doorwayWidth - 10,
     options.doorwayHeight - 10,
     2,
@@ -201,8 +202,7 @@ function addSwingDoor(options) {
     new THREE.MeshStandardMaterial({ color: 0x87CEEB, transparent: true, opacity: 0.5 }),
     new THREE.MeshStandardMaterial({ color: 0x000000 })
   );
-  swingDoor.position.set(0, options.doorwayHeight / 2, 0);
-  scene.add(swingDoor);
+  door.position.set(0, options.doorwayHeight / 2, 0);
 
   // Group Zarge and Door
   currentElement = new THREE.Group();

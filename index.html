@@ -113,10 +113,29 @@ function createDoorWithGlassAndFrame(group, width, height, rows, cols, glassMate
   const frameThickness = 2; // Rahmenbreite
   const frameDepth = 4; // Rahmentiefe
 
-  // Rahmen außen
-  const outerFrameGeometry = new THREE.BoxGeometry(width, height, frameDepth);
-  const outerFrameMesh = new THREE.Mesh(outerFrameGeometry, sprosseMaterial);
-  group.add(outerFrameMesh);
+  // Rahmen oben
+  const topFrameGeometry = new THREE.BoxGeometry(width, frameThickness, frameDepth);
+  const topFrameMesh = new THREE.Mesh(topFrameGeometry, sprosseMaterial);
+  topFrameMesh.position.set(0, height / 2 - frameThickness / 2, 0);
+  group.add(topFrameMesh);
+
+  // Rahmen unten
+  const bottomFrameGeometry = new THREE.BoxGeometry(width, frameThickness, frameDepth);
+  const bottomFrameMesh = new THREE.Mesh(bottomFrameGeometry, sprosseMaterial);
+  bottomFrameMesh.position.set(0, -height / 2 + frameThickness / 2, 0);
+  group.add(bottomFrameMesh);
+
+  // Rahmen links
+  const leftFrameGeometry = new THREE.BoxGeometry(frameThickness, height - 2 * frameThickness, frameDepth);
+  const leftFrameMesh = new THREE.Mesh(leftFrameGeometry, sprosseMaterial);
+  leftFrameMesh.position.set(-width / 2 + frameThickness / 2, 0, 0);
+  group.add(leftFrameMesh);
+
+  // Rahmen rechts
+  const rightFrameGeometry = new THREE.BoxGeometry(frameThickness, height - 2 * frameThickness, frameDepth);
+  const rightFrameMesh = new THREE.Mesh(rightFrameGeometry, sprosseMaterial);
+  rightFrameMesh.position.set(width / 2 - frameThickness / 2, 0, 0);
+  group.add(rightFrameMesh);
 
   // Glas
   const glassWidth = width - 2 * frameThickness;
@@ -131,7 +150,7 @@ function createDoorWithGlassAndFrame(group, width, height, rows, cols, glassMate
   for (let i = 1; i < rows; i++) {
     const y = -height / 2 + (i * height) / rows;
     const horizontalSprosse = new THREE.Mesh(
-      new THREE.BoxGeometry(width, sprossenWidth, glassDepth),
+      new THREE.BoxGeometry(glassWidth, sprossenWidth, glassDepth),
       sprosseMaterial
     );
     horizontalSprosse.position.set(0, y, 0);
@@ -141,7 +160,7 @@ function createDoorWithGlassAndFrame(group, width, height, rows, cols, glassMate
   for (let j = 1; j < cols; j++) {
     const x = -width / 2 + (j * width) / cols;
     const verticalSprosse = new THREE.Mesh(
-      new THREE.BoxGeometry(sprossenWidth, height, glassDepth),
+      new THREE.BoxGeometry(sprossenWidth, glassHeight, glassDepth),
       sprosseMaterial
     );
     verticalSprosse.position.set(x, 0, 0);

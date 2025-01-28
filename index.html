@@ -108,60 +108,45 @@ function removeCurrentElement() {
   }
 }
 
-// Funktion zum Erstellen eines Türrahmens mit Glas und Sprossen
-function createDoorWithGlassAndFrame(width, height, depth, material, sprossenRows, sprossenCols) {
-  const group = new THREE.Group();
+function createDoorWithGlassAndFrame(group, width, height, rows, cols, glassMaterial, sprosseMaterial) {
+  // Rahmen
+  const frameThickness = 2; // Rahmenbreite
+  const frameDepth = 4; // Rahmentiefe
 
-  // Umlaufender Rahmen
-  const frameThickness = 2;
-  const frameDepth = 4;
-  const outerFrame = new THREE.BoxGeometry(width, height, frameDepth);
-  const innerFrame = new THREE.BoxGeometry(width - 2 * frameThickness, height - 2 * frameThickness, frameDepth);
-
-  const outerFrameMesh = new THREE.Mesh(outerFrame, material);
-  const innerFrameMesh = new THREE.Mesh(innerFrame, material);
-
-  const frameBSP = new THREE.BufferGeometry().copy(outerFrameMesh.geometry);
-  const innerBSP = new THREE.BufferGeometry().copy(innerFrameMesh.geometry);
-  const frame = new THREE.Mesh(new THREE.BufferGeometry().fromGeometry(frameBSP));
-  group.add(frame);
+  // Rahmen außen
+  const outerFrameGeometry = new THREE.BoxGeometry(width, height, frameDepth);
+  const outerFrameMesh = new THREE.Mesh(outerFrameGeometry, sprosseMaterial);
+  group.add(outerFrameMesh);
 
   // Glas
-  const glassThickness = 1;
-  const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, transparent: true, opacity: 0.5 });
-  const glassGeometry = new THREE.BoxGeometry(
-    width - 2 * frameThickness,
-    height - 2 * frameThickness,
-    glassThickness
-  );
-  const glass = new THREE.Mesh(glassGeometry, glassMaterial);
-  group.add(glass);
+  const glassWidth = width - 2 * frameThickness;
+  const glassHeight = height - 2 * frameThickness;
+  const glassDepth = 0.5;
+  const glassGeometry = new THREE.BoxGeometry(glassWidth, glassHeight, glassDepth);
+  const glassMesh = new THREE.Mesh(glassGeometry, glassMaterial);
+  group.add(glassMesh);
 
   // Sprossen
-  const sprossenMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
-  const sprossenWidth = 0.2;
-
-  for (let i = 0; i <= sprossenRows; i++) {
-    const y = -height / 2 + (i * height) / sprossenRows;
+  const sprossenWidth = 0.2; // Dicke der Sprossen
+  for (let i = 1; i < rows; i++) {
+    const y = -height / 2 + (i * height) / rows;
     const horizontalSprosse = new THREE.Mesh(
-      new THREE.BoxGeometry(width - 2 * frameThickness, sprossenWidth, glassThickness),
-      sprossenMaterial
+      new THREE.BoxGeometry(width, sprossenWidth, glassDepth),
+      sprosseMaterial
     );
     horizontalSprosse.position.set(0, y, 0);
     group.add(horizontalSprosse);
   }
 
-  for (let j = 0; j <= sprossenCols; j++) {
-    const x = -width / 2 + (j * width) / sprossenCols;
+  for (let j = 1; j < cols; j++) {
+    const x = -width / 2 + (j * width) / cols;
     const verticalSprosse = new THREE.Mesh(
-      new THREE.BoxGeometry(sprossenWidth, height - 2 * frameThickness, glassThickness),
-      sprossenMaterial
+      new THREE.BoxGeometry(sprossenWidth, height, glassDepth),
+      sprosseMaterial
     );
     verticalSprosse.position.set(x, 0, 0);
     group.add(verticalSprosse);
   }
-
-  return group;
 }
 
 // Drehtür

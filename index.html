@@ -107,13 +107,39 @@ function removeCurrentElement() {
     currentElement = null;
   }
 }
+
+// Funktion zum Hinzufügen von Sprossen und Glas
+function addSprossenAndGlass(parent, width, height, sprossenRows, sprossenCols, materialGlass, materialSprosse) {
+  const cellWidth = width / sprossenCols;
+  const cellHeight = height / sprossenRows;
+
+  // Glasfläche erstellen
+  const glass = createLoftFrenchElement(width, height, 0.5, { x: 0, y: height / 2, z: 0.5 }, materialGlass);
+  parent.add(glass);
+
+  // Sprossen horizontal hinzufügen
+  for (let i = 1; i < sprossenRows; i++) {
+    const y = i * cellHeight - height / 2;
+    const sprosse = createLoftFrenchElement(width, 0.5, 0.5, { x: 0, y: y, z: 0.5 }, materialSprosse);
+    parent.add(sprosse);
+  }
+
+  // Sprossen vertikal hinzufügen
+  for (let i = 1; i < sprossenCols; i++) {
+    const x = i * cellWidth - width / 2;
+    const sprosse = createLoftFrenchElement(0.5, height, 0.5, { x: x, y: height / 2, z: 0.5 }, materialSprosse);
+    parent.add(sprosse);
+  }
+}
+
 // Drehtür
 function addSwingDoor(options) {
   removeCurrentElement();
 
-  // Determine Zarge thickness based on selected type
   const zargeThickness = options.zargeType === 'standard' ? 5 : 2; // 5 cm for standard, 2 cm for slim
   const zargeMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
+  const sprossenRows = options.sprossenRows;
+  const sprossenCols = options.sprossenCols;
 
   // Calculate Zarge dimensions
   const zargeWidth = options.doorwayWidth - zargeThickness * 2; // Width reduced on both sides
@@ -145,51 +171,49 @@ function addSwingDoor(options) {
   const doorWidth = zargeWidth - 0.4; // Reduced by 0.2 cm on both sides
   const doorHeight = zargeHeight - 1; // Reduced by 0.2 cm on top and 1 cm at bottom
   const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+  const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, opacity: 0.5, transparent: true });
+  const sprosseMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
 
   // Create the Door
-  const door = createLoftFrenchElement(doorWidth, doorHeight, 4, {
-    x: 0,
-    y: doorHeight / 2 + 1,
-    z: 0,
-  }, doorMaterial);
+  const door = new THREE.Group();
+  addSprossenAndGlass(door, doorWidth, doorHeight, sprossenRows, sprossenCols, glassMaterial, sprosseMaterial);
+  door.position.set(0, doorHeight / 2 + 1, 0);
 
   // Group Zarge and Door
   currentElement = new THREE.Group();
   currentElement.add(topZarge, leftZarge, rightZarge, door);
   scene.add(currentElement);
 }
-        
-// Funktion zum Hinzufügen einer Schiebetür
+
+// Schiebetür
 function addSlidingDoor(options) {
   removeCurrentElement();
 
   const doorWidth = options.doorwayWidth + 20; // 2cm größer in der Breite
   const doorHeight = options.doorwayHeight + 10; // 1cm größer in der Höhe
-  const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x666666 });
+  const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, opacity: 0.5, transparent: true });
+  const sprosseMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
 
-  const slidingDoor = createLoftFrenchElement(doorWidth, doorHeight, 4, {
-    x: 0,
-    y: doorHeight / 2,
-    z: wallThickness / 2 + 3 // Vor der Wand
-  }, doorMaterial);
+  const slidingDoor = new THREE.Group();
+  addSprossenAndGlass(slidingDoor, doorWidth, doorHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
+  slidingDoor.position.set(0, doorHeight / 2, wallThickness / 2 + 3); // Vor der Wand
 
   currentElement = slidingDoor;
   scene.add(currentElement);
 }
 
-// Funktion zum Hinzufügen einer Trennwand
+// Trennwand
 function addPartition(options) {
   removeCurrentElement();
 
   const partitionWidth = options.doorwayWidth;
   const partitionHeight = options.doorwayHeight;
-  const partitionMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
+  const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, opacity: 0.5, transparent: true });
+  const sprosseMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
 
-  const partition = createLoftFrenchElement(partitionWidth, partitionHeight, 4, {
-    x: 0,
-    y: partitionHeight / 2,
-    z: 0 
-  }, partitionMaterial);
+  const partition = new THREE.Group();
+  addSprossenAndGlass(partition, partitionWidth, partitionHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
+  partition.position.set(0, partitionHeight / 2, 0);
 
   currentElement = partition;
   scene.add(currentElement);
@@ -203,6 +227,8 @@ const options = {
   wallColor: '#ffffff',
   elementType: 'none', // Typ des Elements
   zargeType: 'standard', // Zarge Typ
+  sprossenRows: 2, // Anzahl der horizontalen Sprossen
+  sprossenCols: 2, // Anzahl der vertikalen Sprossen
 };
 
 // Add controls
@@ -221,6 +247,14 @@ const doorwayHeightControl = gui.add(options, 'doorwayHeight', 190, 300).onChang
 const wallColorControl = gui.addColor(options, 'wallColor').onChange((value) => {
   options.wallColor = value;
   updateWallWithDoorway(options);
+});
+
+const sprossenRowsControl = gui.add(options, 'sprossenRows', 0, 10, 1).onChange(() => {
+  updateElement();
+});
+
+const sprossenColsControl = gui.add(options, 'sprossenCols', 0, 10, 1).onChange(() => {
+  updateElement();
 });
 
 const elementTypeControl = gui.add(options, 'elementType', ['none', 'swing door', 'sliding door', 'partition']).onChange((value) => {
@@ -278,7 +312,6 @@ function animate() {
 }
 
 animate();
-
         
     </script>
 </body>

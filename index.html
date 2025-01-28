@@ -25,7 +25,7 @@ import { OrbitControls } from 'OrbitControls';
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xd3d3d3); // Hintergrund auf hellgrau setzen
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 2000);
 camera.position.set(0, 500, 1000);
 camera.lookAt(0, 250, 0);
 
@@ -107,50 +107,58 @@ function removeCurrentElement() {
     currentElement = null;
   }
 }
-
-// Funktion zum Hinzufügen einer Drehtür
+// Drehtür
 function addSwingDoor(options) {
   removeCurrentElement();
 
-  const doorWidth = options.doorwayWidth - 10; // 5mm Abstand zu beiden Seiten
-  const doorHeight = options.doorwayHeight - 5; // 5mm Abstand oben
-
-  // Zarge erstellen
+  // Determine Zarge thickness based on selected type
+  const zargeThickness = options.zargeType === 'standard' ? 5 : 2; // 5 cm for standard, 2 cm for slim
   const zargeMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
-  const zargeWidth = options.zargeType === 'standard' ? 5 : 2; // Breite der Zarge
-  const zargeDepth = 5; // Tiefe der Zarge
 
-  const topZarge = createLoftFrenchElement(doorWidth, zargeWidth, zargeDepth, {
+  // Calculate Zarge dimensions
+  const zargeWidth = options.doorwayWidth - zargeThickness * 2; // Width reduced on both sides
+  const zargeHeight = options.doorwayHeight - zargeThickness; // Height reduced at the top
+  const zargeDepth = 5; // Zarge depth is always 5 cm
+
+  // Create top Zarge
+  const topZarge = createLoftFrenchElement(zargeWidth, zargeThickness, zargeDepth, {
     x: 0,
-    y: options.doorwayHeight - options.doorwayWidth / 2,
-    z: 0
+    y: options.doorwayHeight - zargeThickness / 2,
+    z: 0,
   }, zargeMaterial);
 
-  const leftZarge = createLoftFrenchElement(zargeWidth, doorHeight, zargeDepth, {
-    x: -doorWidth / 2 - zargeWidth / 2,
-    y: doorHeight / 2,
-    z: 0
+  // Create side Zarges
+  const sideZargeHeight = zargeHeight + zargeThickness; // Inner Zarge height
+  const leftZarge = createLoftFrenchElement(zargeThickness, sideZargeHeight, zargeDepth, {
+    x: -zargeWidth / 2 - zargeThickness / 2,
+    y: sideZargeHeight / 2,
+    z: 0,
   }, zargeMaterial);
 
-  const rightZarge = createLoftFrenchElement(zargeWidth, doorHeight, zargeDepth, {
-    x: doorWidth / 2 + zargeWidth / 2,
-    y: doorHeight / 2,
-    z: 0
+  const rightZarge = createLoftFrenchElement(zargeThickness, sideZargeHeight, zargeDepth, {
+    x: zargeWidth / 2 + zargeThickness / 2,
+    y: sideZargeHeight / 2,
+    z: 0,
   }, zargeMaterial);
 
-  // Türblatt erstellen
+  // Calculate Door dimensions
+  const doorWidth = zargeWidth - 0.4; // Reduced by 0.2 cm on both sides
+  const doorHeight = zargeHeight - 1; // Reduced by 0.2 cm on top and 1 cm at bottom
   const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
-  const door = createLoftFrenchElement(doorWidth - zargeWidth * 2, doorHeight - zargeWidth, 4, {
+
+  // Create the Door
+  const door = createLoftFrenchElement(doorWidth, doorHeight, 4, {
     x: 0,
-    y: doorHeight / 2,
-    z: 0
+    y: doorHeight / 2 + 1,
+    z: 0,
   }, doorMaterial);
 
+  // Group Zarge and Door
   currentElement = new THREE.Group();
   currentElement.add(topZarge, leftZarge, rightZarge, door);
   scene.add(currentElement);
 }
-
+        
 // Funktion zum Hinzufügen einer Schiebetür
 function addSlidingDoor(options) {
   removeCurrentElement();
@@ -194,42 +202,73 @@ const options = {
   doorwayHeight: 210, // Initialwert in cm
   wallColor: '#ffffff',
   elementType: 'none', // Typ des Elements
-  zargeType: 'standard' // Zarge Typ
+  zargeType: 'standard', // Zarge Typ
 };
 
-gui.add(options, 'doorwayWidth', 50, 300).onChange((value) => {
+// Add controls
+const doorwayWidthControl = gui.add(options, 'doorwayWidth', 50, 300).onChange((value) => {
   options.doorwayWidth = value;
   updateWallWithDoorway(options);
-  if (options.elementType === 'swing door') addSwingDoor(options);
-  if (options.elementType === 'sliding door') addSlidingDoor(options);
-  if (options.elementType === 'partition') addPartition(options);
+  updateElement();
 });
 
-gui.add(options, 'doorwayHeight', 190, 300).onChange((value) => {
+const doorwayHeightControl = gui.add(options, 'doorwayHeight', 190, 300).onChange((value) => {
   options.doorwayHeight = value;
   updateWallWithDoorway(options);
-  if (options.elementType === 'swing door') addSwingDoor(options);
-  if (options.elementType === 'sliding door') addSlidingDoor(options);
-  if (options.elementType === 'partition') addPartition(options);
+  updateElement();
 });
 
-gui.addColor(options, 'wallColor').onChange((value) => {
+const wallColorControl = gui.addColor(options, 'wallColor').onChange((value) => {
   options.wallColor = value;
   updateWallWithDoorway(options);
 });
 
-gui.add(options, 'elementType', ['none', 'swing door', 'sliding door', 'partition']).onChange((value) => {
+const elementTypeControl = gui.add(options, 'elementType', ['none', 'swing door', 'sliding door', 'partition']).onChange((value) => {
   options.elementType = value;
-  if (value === 'none') removeCurrentElement();
-  if (value === 'swing door') addSwingDoor(options);
-  if (value === 'sliding door') addSlidingDoor(options);
-  if (value === 'partition') addPartition(options);
+  updateElement();
+  toggleZargeControl(value);
 });
 
-gui.add(options, 'zargeType', ['standard', 'slim']);
+// Add Zarge Type (initially hidden)
+let zargeControl;
+function addZargeControl() {
+  zargeControl = gui.add(options, 'zargeType', ['standard', 'slim']).onChange(() => {
+    updateElement();
+  });
+}
 
-// Initial Wand mit Durchgang erstellen
+function removeZargeControl() {
+  if (zargeControl) {
+    gui.remove(zargeControl);
+    zargeControl = null;
+  }
+}
+
+// Toggle Zarge control visibility based on elementType
+function toggleZargeControl(elementType) {
+  if (elementType === 'swing door' && !zargeControl) {
+    addZargeControl();
+  } else if (elementType !== 'swing door') {
+    removeZargeControl();
+  }
+}
+
+// Update the current element based on selected options
+function updateElement() {
+  if (options.elementType === 'none') {
+    removeCurrentElement();
+  } else if (options.elementType === 'swing door') {
+    addSwingDoor(options);
+  } else if (options.elementType === 'sliding door') {
+    addSlidingDoor(options);
+  } else if (options.elementType === 'partition') {
+    addPartition(options);
+  }
+}
+
+// Initialize the wall with doorway and the GUI
 updateWallWithDoorway(options);
+toggleZargeControl(options.elementType);
 
 // Animation-Schleife
 function animate() {

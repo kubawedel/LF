@@ -140,13 +140,13 @@ function createDoorWithGlassAndFrame(group, width, height, rows, cols, glassMate
   // Glas
   const glassWidth = width - 2 * frameThickness;
   const glassHeight = height - 2 * frameThickness;
-  const glassDepth = 0.5;
+  const glassDepth = 0.7;
   const glassGeometry = new THREE.BoxGeometry(glassWidth, glassHeight, glassDepth);
   const glassMesh = new THREE.Mesh(glassGeometry, glassMaterial);
   group.add(glassMesh);
 
   // Sprossen
-  const sprossenWidth = 0.2; // Dicke der Sprossen
+  const sprossenWidth = 1.5; // Dicke der Sprossen
   for (let i = 1; i < rows; i++) {
     const y = -height / 2 + (i * height) / rows;
     const horizontalSprosse = new THREE.Mesh(

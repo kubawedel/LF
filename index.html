@@ -90,6 +90,13 @@ function updateWallWithDoorway(options) {
   wall.name = 'wall';
   scene.add(wall);
 }
+
+let labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(window.innerWidth, window.innerHeight);
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.top = '0px';
+labelRenderer.domElement.style.pointerEvents = 'none';
+document.body.appendChild(labelRenderer.domElement);
         
 // Funktion zum Erstellen einer Beschriftung für die Elementgröße
 let sizeLabel = null;

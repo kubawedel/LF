@@ -290,6 +290,7 @@ const wallColorControl = gui.addColor(options, 'wallColor').onChange((value) => 
 const elementColorControl = gui.addColor(options, 'elementColor').onChange((value) => {
   options.Color = value;
   updateElement();
+});
 
 const sprossenRowsControl = gui.add(options, 'sprossenRows', 0, 10, 1).onChange(() => {
   updateElement();

@@ -53,8 +53,6 @@ const wallWidth = 2000; // 20m in cm
 const wallHeight = 1000; // 10m in cm
 const wallThickness = 30; // 30cm
 
-const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff }); // Fixierte Wandfarbe
-
 // Licht hinzufügen
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 scene.add(ambientLight);
@@ -84,6 +82,7 @@ function updateWallWithDoorway(options) {
   wallShape.holes.push(doorwayShape);
 
   const wallGeometry = new THREE.ExtrudeGeometry(wallShape, { depth: wallThickness, bevelEnabled: false });
+  const wallMaterial = new THREE.MeshStandardMaterial({ color: options.wallColor });
   const wall = new THREE.Mesh(wallGeometry, wallMaterial);
   wall.position.z = -wallThickness / 2;
   wall.name = 'wall';
@@ -175,7 +174,7 @@ function addSwingDoor(options) {
   removeCurrentElement();
 
   const zargeThickness = options.zargeType === 'standard' ? 5 : 2; // 5 cm for standard, 2 cm for slim
-  const zargeMaterial = new THREE.MeshStandardMaterial({ color: options.elementColor });
+  const zargeMaterial = new THREE.MeshStandardMaterial({ color: options.Color });
   const sprossenRows = options.sprossenRows;
   const sprossenCols = options.sprossenCols;
 
@@ -208,9 +207,9 @@ function addSwingDoor(options) {
   // Calculate Door dimensions
   const doorWidth = zargeWidth - 0.4; // Reduced by 0.2 cm on both sides
   const doorHeight = zargeHeight - 1; // Reduced by 0.2 cm on top and 1 cm at bottom
-  const doorMaterial = new THREE.MeshStandardMaterial({ color: options.elementColor });
+  const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
   const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, opacity: 0.5, transparent: true });
-  const sprosseMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
+  const sprosseMaterial = new THREE.MeshStandardMaterial({ color: options.Color });
 
    // Create the Door
   const door = new THREE.Group();
@@ -230,95 +229,130 @@ function addSlidingDoor(options) {
   const doorWidth = options.doorwayWidth + 20; // 2cm größer in der Breite
   const doorHeight = options.doorwayHeight + 10; // 1cm größer in der Höhe
   const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, opacity: 0.5, transparent: true });
-  const sprosseMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
+  const sprosseMaterial = new THREE.MeshStandardMaterial({ color: options.Color });
 
   const slidingDoor = new THREE.Group();
   createDoorWithGlassAndFrame(slidingDoor, doorWidth, doorHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
-  slidingDoor.position.set(0, doorHeight / 2, 0);
+  slidingDoor.position.set(0, doorHeight / 2, wallThickness / 2 + 3); // Vor der Wand
 
   currentElement = slidingDoor;
   scene.add(currentElement);
 }
 
-// GUI erstellen
+// Trennwand
+function addPartition(options) {
+  removeCurrentElement();
+
+  const partitionWidth = options.doorwayWidth;
+  const partitionHeight = options.doorwayHeight;
+  const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, opacity: 0.5, transparent: true });
+  const sprosseMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
+
+  const partition = new THREE.Group();
+  createDoorWithGlassAndFrame(partition, partitionWidth, partitionHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
+  partition.position.set(0, partitionHeight / 2, 0);
+
+  currentElement = partition;
+  scene.add(currentElement);
+}
+
+// GUI-Konfiguration
 const gui = new GUI();
 const options = {
-  doorwayWidth: 100,
-  doorwayHeight: 200,
-  elementColor: 0xff0000,
-  sprossenRows: 2,
-  sprossenCols: 2,
-  zargeType: 'standard',
-  doorType: 'swing',
+  doorwayWidth: 100, // Initialwert in cm
+  doorwayHeight: 210, // Initialwert in cm
+  wallColor: '#ffffff',
+  Color: '#ffffff',  
+  elementType: 'none', // Typ des Elements
+  zargeType: 'standard', // Zarge Typ
+  sprossenRows: 2, // Anzahl der horizontalen Sprossen
+  sprossenCols: 2, // Anzahl der vertikalen Sprossen
 };
 
-gui.addColor(options, 'elementColor').name('Elementfarbe').onChange(() => {
-  if (options.doorType === 'swing') {
-    addSwingDoor(options);
-  } else {
-    addSlidingDoor(options);
-  }
-});
-
-gui.add(options, 'doorType', ['swing', 'sliding']).name('Türtyp').onChange(() => {
-  if (options.doorType === 'swing') {
-    addSwingDoor(options);
-  } else {
-    addSlidingDoor(options);
-  }
-});
-
-gui.add(options, 'doorwayWidth', 50, 300).name('Türbreite').onChange(() => {
+// Add controls
+const doorwayWidthControl = gui.add(options, 'doorwayWidth', 50, 300).onChange((value) => {
+  options.doorwayWidth = value;
   updateWallWithDoorway(options);
-  if (options.doorType === 'swing') {
-    addSwingDoor(options);
-  } else {
-    addSlidingDoor(options);
-  }
+  updateElement();
 });
 
-gui.add(options, 'doorwayHeight', 150, 400).name('Türhöhe').onChange(() => {
+const doorwayHeightControl = gui.add(options, 'doorwayHeight', 190, 300).onChange((value) => {
+  options.doorwayHeight = value;
   updateWallWithDoorway(options);
-  if (options.doorType === 'swing') {
-    addSwingDoor(options);
-  } else {
-    addSlidingDoor(options);
-  }
+  updateElement();
 });
 
-gui.add(options, 'sprossenRows', 1, 5, 1).name('Sprossenreihen').onChange(() => {
-  if (options.doorType === 'swing') {
-    addSwingDoor(options);
-  } else {
-    addSlidingDoor(options);
-  }
+const wallColorControl = gui.addColor(options, 'wallColor').onChange((value) => {
+  options.wallColor = value;
+  updateWallWithDoorway(options);
 });
 
-gui.add(options, 'sprossenCols', 1, 5, 1).name('Sprossenspalten').onChange(() => {
-  if (options.doorType === 'swing') {
-    addSwingDoor(options);
-  } else {
-    addSlidingDoor(options);
-  }
+const ColorControl = gui.addColor(options, 'Color').onChange((value) => {
+  options.Color = value;
+  updateElement();
+
+const sprossenRowsControl = gui.add(options, 'sprossenRows', 0, 10, 1).onChange(() => {
+  updateElement();
 });
 
-gui.add(options, 'zargeType', ['standard', 'slim']).name('Zarge Typ').onChange(() => {
-  if (options.doorType === 'swing') {
-    addSwingDoor(options);
-  } else {
-    addSlidingDoor(options);
-  }
+const sprossenColsControl = gui.add(options, 'sprossenCols', 0, 10, 1).onChange(() => {
+  updateElement();
 });
 
+const elementTypeControl = gui.add(options, 'elementType', ['none', 'swing door', 'sliding door', 'partition']).onChange((value) => {
+  options.elementType = value;
+  updateElement();
+  toggleZargeControl(value);
+});
+
+// Add Zarge Type (initially hidden)
+let zargeControl;
+function addZargeControl() {
+  zargeControl = gui.add(options, 'zargeType', ['standard', 'slim']).onChange(() => {
+    updateElement();
+  });
+}
+
+function removeZargeControl() {
+  if (zargeControl) {
+    gui.remove(zargeControl);
+    zargeControl = null;
+  }
+}
+
+// Toggle Zarge control visibility based on elementType
+function toggleZargeControl(elementType) {
+  if (elementType === 'swing door' && !zargeControl) {
+    addZargeControl();
+  } else if (elementType !== 'swing door') {
+    removeZargeControl();
+  }
+}
+
+// Update the current element based on selected options
+function updateElement() {
+  if (options.elementType === 'none') {
+    removeCurrentElement();
+  } else if (options.elementType === 'swing door') {
+    addSwingDoor(options);
+  } else if (options.elementType === 'sliding door') {
+    addSlidingDoor(options);
+  } else if (options.elementType === 'partition') {
+    addPartition(options);
+  }
+}
+
+// Initialize the wall with doorway and the GUI
 updateWallWithDoorway(options);
-addSwingDoor(options);
+toggleZargeControl(options.elementType);
 
-// Render-Schleife
+// Animation-Schleife
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
   renderer.render(scene, camera);
 }
+
 animate();
         
     </script>

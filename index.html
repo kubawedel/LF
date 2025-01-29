@@ -9,8 +9,7 @@
             "imports": {
                 "three": "https://unpkg.com/three@0.155.0/build/three.module.js",
                 "OrbitControls": "https://unpkg.com/three@0.155.0/examples/jsm/controls/OrbitControls.js",
-                "dat.gui": "https://cdn.jsdelivr.net/npm/dat.gui@0.7.9/build/dat.gui.module.js",
-                "CSS2DRenderer": "https://unpkg.com/three@0.155.0/examples/jsm/renderers/CSS2DRenderer.js"
+                "dat.gui": "https://cdn.jsdelivr.net/npm/dat.gui@0.7.9/build/dat.gui.module.js"
             }
         }
     </script>
@@ -21,7 +20,6 @@
 import * as THREE from 'three';
 import { GUI } from 'dat.gui';
 import { OrbitControls } from 'OrbitControls';
-import { CSS2DRenderer, CSS2DObject } from 'CSS2DRenderer';
 
 // Szene, Kamera und Renderer erstellen
 const scene = new THREE.Scene();
@@ -89,35 +87,6 @@ function updateWallWithDoorway(options) {
   wall.position.z = -wallThickness / 2;
   wall.name = 'wall';
   scene.add(wall);
-}
-
-let labelRenderer = new CSS2DRenderer();
-labelRenderer.setSize(window.innerWidth, window.innerHeight);
-labelRenderer.domElement.style.position = 'absolute';
-labelRenderer.domElement.style.top = '0px';
-labelRenderer.domElement.style.pointerEvents = 'none';
-document.body.appendChild(labelRenderer.domElement);
-        
-// Funktion zum Erstellen einer Beschriftung für die Elementgröße
-let sizeLabel = null;
-
-function addSizeLabel(element, width, height) {
-  if (sizeLabel) scene.remove(sizeLabel);
-
-  const labelDiv = document.createElement('div');
-  labelDiv.className = 'size-label';
-  labelDiv.textContent = `${width} cm x ${height} cm`;
-  labelDiv.style.color = 'black';
-  labelDiv.style.fontSize = '14px';
-  labelDiv.style.backgroundColor = 'white';
-  labelDiv.style.padding = '4px';
-  labelDiv.style.borderRadius = '4px';
-
-  const label = new CSS2DObject(labelDiv);
-  label.position.set(0, 300, 50); 
-
-  element.add(label);
-  sizeLabel = label;
 }
 
 // Funktion zum Erstellen eines LOFT French Elements
@@ -268,9 +237,6 @@ function addSlidingDoor(options) {
 
   currentElement = slidingDoor;
   scene.add(currentElement);
-
-      // Größe anzeigen
-  addSizeLabel(currentElement, doorWidth, doorHeight);
 }
 
 // Trennwand
@@ -288,9 +254,6 @@ function addPartition(options) {
 
   currentElement = partition;
   scene.add(currentElement);
-
-// Größe anzeigen
-  addSizeLabel(currentElement, partitionWidth, partitionHeight);
 }
 
 // GUI-Konfiguration
@@ -329,11 +292,11 @@ const elementColorControl = gui.addColor(options, 'elementColor').onChange((valu
   updateElement();
 });
 
-const sprossenRowsControl = gui.add(options, 'sprossenRows', 0, 10, 1).onChange(() => {
+const sprossenRowsControl = gui.add(options, 'sprossenRows', 0, 5, 1).onChange(() => {
   updateElement();
 });
 
-const sprossenColsControl = gui.add(options, 'sprossenCols', 0, 10, 1).onChange(() => {
+const sprossenColsControl = gui.add(options, 'sprossenCols', 0, 5, 1).onChange(() => {
   updateElement();
 });
 
@@ -389,7 +352,6 @@ function animate() {
     requestAnimationFrame(animate);
     controls.update();
     renderer.render(scene, camera);
-    labelRenderer.render(scene, camera); // Hier das LabelRenderer hinzufügen
 }
 
 animate();

@@ -379,9 +379,10 @@ toggleZargeControl(options.elementType);
 
 // Animation-Schleife
 function animate() {
-  requestAnimationFrame(animate);
-  controls.update();
-  renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+    labelRenderer.render(scene, camera); // Hier das LabelRenderer hinzufügen
 }
 
 animate();

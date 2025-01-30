@@ -401,6 +401,7 @@ function updateElement() {
     options.isDoubleDoor = options.doorType === 'double';
     addSwingDoor(options);
   } else if (options.elementType === 'Schiebetür') {
+    options.isDoubleDoor = options.doorType === 'double';
     addSlidingDoor(options);
   } else if (options.elementType === 'Trennwand') {
     addTrennwand(options);

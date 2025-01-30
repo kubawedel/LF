@@ -174,7 +174,11 @@ function addSwingDoor(options) {
   removeCurrentElement();
 
   const zargeThickness = options.zargeType === 'standard' ? 5 : 2; // 5 cm for standard, 2 cm for slim
-  const zargeMaterial = new THREE.MeshStandardMaterial({ color: options.elementColor });
+  const zargeMaterial = new THREE.MeshStandardMaterial({ 
+  color: options.elementColor,
+  metalness: 0.5,   // Metallischer Effekt
+  roughness: 0.3,   // Wenig rau, damit es leicht reflektiert
+});
   const sprossenRows = options.sprossenRows;
   const sprossenCols = options.sprossenCols;
 
@@ -207,9 +211,17 @@ function addSwingDoor(options) {
   // Calculate Door dimensions
   const doorWidth = (zargeWidth - 0.4) / (options.isDoubleDoor ? 2 : 1); // Halbe Breite bei Doppeltür
   const doorHeight = zargeHeight - 1; // Reduced by 0.2 cm on top and 1 cm at bottom
-  const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+  const doorMaterial = new THREE.MeshStandardMaterial({ 
+  color: options.elementColor,
+  metalness: 0.5,   // Metallischer Effekt
+  roughness: 0.3,   // Wenig rau, damit es leicht reflektiert
+});
   const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, opacity: 0.5, transparent: true });
-  const sprosseMaterial = new THREE.MeshStandardMaterial({ color: options.elementColor });
+  const sprosseMaterial = new THREE.MeshStandardMaterial({ 
+  color: options.elementColor,
+  metalness: 0.5,   // Metallischer Effekt
+  roughness: 0.3,   // Wenig rau, damit es leicht reflektiert
+});
 
   // Create doors
   const doorGroup = new THREE.Group();
@@ -247,8 +259,16 @@ function addSlidingDoor(options) {
   const doorWidth = (options.Dürchgangsbreite + 2) / (options.doorType === 'double' ? 2 : 1); // Halbe Breite bei Doppelschiebetür
   const doorHeight = options.Dürchgangshöhe + 1; // 1 cm größer in der Höhe
   const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, opacity: 0.5, transparent: true });
-  const sprosseMaterial = new THREE.MeshStandardMaterial({ color: options.elementColor });
-  const doorMaterial = new THREE.MeshStandardMaterial({ color: options.elementColor });
+  const sprosseMaterial = new THREE.MeshStandardMaterial({ 
+  color: options.elementColor,
+  metalness: 0.5,   // Metallischer Effekt
+  roughness: 0.3,   // Wenig rau, damit es leicht reflektiert
+});
+  const doorMaterial = new THREE.MeshStandardMaterial({ 
+  color: options.elementColor,
+  metalness: 0.5,   // Metallischer Effekt
+  roughness: 0.3,   // Wenig rau, damit es leicht reflektiert
+});
 
   const slidingDoorGroup = new THREE.Group();
 
@@ -296,7 +316,11 @@ function addTrennwand(options) {
   const TrennwandWidth = options.Dürchgangsbreite;
   const TrennwandHeight = options.Dürchgangshöhe;
   const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, opacity: 0.5, transparent: true });
-  const sprosseMaterial = new THREE.MeshStandardMaterial({ color: options.elementColor });
+  const sprosseMaterial = new THREE.MeshStandardMaterial({ 
+  color: options.elementColor,
+  metalness: 0.5,   // Metallischer Effekt
+  roughness: 0.3,   // Wenig rau, damit es leicht reflektiert
+});
 
   const Trennwand = new THREE.Group();
   createDoorWithGlassAndFrame(Trennwand, TrennwandWidth, TrennwandHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);

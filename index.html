@@ -386,9 +386,9 @@ function removeDoorTypeControl() {
 
 // Toggle Door Type control visibility based on elementType
 function toggleDoorTypeControl(elementType) {
-  if (elementType === 'Drehtür' && !doorTypeControl) {
+  if ((elementType === 'Drehtür' || elementType === 'Schiebetür') && !doorTypeControl) {
     addDoorTypeControl();
-  } else if (elementType !== 'Drehtür') {
+  } else if (elementType !== 'Drehtür' && elementType !== 'Schiebetür') {
     removeDoorTypeControl();
   }
 }

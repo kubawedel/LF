@@ -169,7 +169,7 @@ function createDoorWithGlassAndFrame(group, width, height, rows, cols, glassMate
   }
 }
 
-// Drehtür
+// Drehtür mit Option für Doppeldrehtür
 function addSwingDoor(options) {
   removeCurrentElement();
 
@@ -205,23 +205,33 @@ function addSwingDoor(options) {
   }, zargeMaterial);
 
   // Calculate Door dimensions
-  const doorWidth = zargeWidth - 0.4; // Reduced by 0.2 cm on both sides
+  const doorWidth = (zargeWidth - 0.4) / (options.isDoubleDoor ? 2 : 1); // Halbe Breite bei Doppeltür
   const doorHeight = zargeHeight - 1; // Reduced by 0.2 cm on top and 1 cm at bottom
   const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
   const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, opacity: 0.5, transparent: true });
   const sprosseMaterial = new THREE.MeshStandardMaterial({ color: options.elementColor });
 
-   // Create the Door
-  const door = new THREE.Group();
-  createDoorWithGlassAndFrame(door, doorWidth, doorHeight, sprossenRows, sprossenCols, glassMaterial, sprosseMaterial);
-  door.position.set(0, doorHeight / 2 + 1, 0);
+  // Create doors
+  const doorGroup = new THREE.Group();
+  
+  const doorLeft = new THREE.Group();
+  createDoorWithGlassAndFrame(doorLeft, doorWidth, doorHeight, sprossenRows, sprossenCols, glassMaterial, sprosseMaterial);
+  doorLeft.position.set(-doorWidth / 2 - 0.2, doorHeight / 2 + 1, 0);
+  doorGroup.add(doorLeft);
+
+  if (options.isDoubleDoor) {
+    const doorRight = new THREE.Group();
+    createDoorWithGlassAndFrame(doorRight, doorWidth, doorHeight, sprossenRows, sprossenCols, glassMaterial, sprosseMaterial);
+    doorRight.position.set(doorWidth / 2 + 0.2, doorHeight / 2 + 1, 0);
+    doorGroup.add(doorRight);
+  }
 
   // Group Zarge and Door
   currentElement = new THREE.Group();
-  currentElement.add(topZarge, leftZarge, rightZarge, door);
+  currentElement.add(topZarge, leftZarge, rightZarge, doorGroup);
   scene.add(currentElement);
 }
-
+        
 // Schiebetür
 function addSlidingDoor(options) {
   removeCurrentElement();
@@ -259,7 +269,7 @@ function addTrennwand(options) {
 // GUI-Konfiguration
 const gui = new GUI();
 const options = {
-  elementColor: '#ffffff',  // Hier hinzugefügt
+  elementColor: '#ffffff',
   Dürchgangsbreite: 100,
   Dürchgangshöhe: 210,
   wallColor: '#949498',
@@ -267,6 +277,7 @@ const options = {
   zargeType: 'standard',
   sprossenRows: 2,
   sprossenCols: 2,
+  doorType: 'single', // Neue Option: 'single' oder 'double'
 };
 
 // Add controls
@@ -304,6 +315,7 @@ const elementTypeControl = gui.add(options, 'elementType', ['none', 'Drehtür', 
   options.elementType = value;
   updateElement();
   toggleZargeControl(value);
+  toggleDoorTypeControl(value);
 });
 
 // Add Zarge Type (initially hidden)
@@ -330,11 +342,36 @@ function toggleZargeControl(elementType) {
   }
 }
 
+// Add Door Type (single/double) control
+let doorTypeControl;
+function addDoorTypeControl() {
+  doorTypeControl = gui.add(options, 'doorType', ['single', 'double']).onChange(() => {
+    updateElement();
+  });
+}
+
+function removeDoorTypeControl() {
+  if (doorTypeControl) {
+    gui.remove(doorTypeControl);
+    doorTypeControl = null;
+  }
+}
+
+// Toggle Door Type control visibility based on elementType
+function toggleDoorTypeControl(elementType) {
+  if (elementType === 'Drehtür' && !doorTypeControl) {
+    addDoorTypeControl();
+  } else if (elementType !== 'Drehtür') {
+    removeDoorTypeControl();
+  }
+}
+
 // Update the current element based on selected options
 function updateElement() {
   if (options.elementType === 'none') {
     removeCurrentElement();
   } else if (options.elementType === 'Drehtür') {
+    options.isDoubleDoor = options.doorType === 'double';
     addSwingDoor(options);
   } else if (options.elementType === 'Schiebetür') {
     addSlidingDoor(options);
@@ -346,6 +383,7 @@ function updateElement() {
 // Initialize the wall with doorway and the GUI
 updateWallWithDoorway(options);
 toggleZargeControl(options.elementType);
+toggleDoorTypeControl(options.elementType);
 
 // Animation-Schleife
 function animate() {

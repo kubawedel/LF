@@ -281,19 +281,19 @@ function addSlidingDoor(options) {
     // Linke Türhälfte
     const leftDoor = new THREE.Group();
     createDoorWithGlassAndFrame(leftDoor, doorWidth, doorHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
-    leftDoor.position.set(-doorWidth / 2 - 0.1, doorHeight / 2, wallThickness / 2 + 2.5); // Verschiebung nach links
+    leftDoor.position.set(-doorWidth / 2 - 0.1, doorHeight / 2 + 1, wallThickness / 2 + 2.5); // Verschiebung nach links
     slidingDoorGroup.add(leftDoor);
 
     // Rechte Türhälfte
     const rightDoor = new THREE.Group();
     createDoorWithGlassAndFrame(rightDoor, doorWidth, doorHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
-    rightDoor.position.set(doorWidth / 2 + 0.1, doorHeight / 2, wallThickness / 2 + 2.5); // Verschiebung nach rechts
+    rightDoor.position.set(doorWidth / 2 + 0.1, doorHeight / 2 + 1, wallThickness / 2 + 2.5); // Verschiebung nach rechts
     slidingDoorGroup.add(rightDoor);
   } else {
     // Einflügelige Schiebetür mittig
     const singleDoor = new THREE.Group();
     createDoorWithGlassAndFrame(singleDoor, doorWidth, doorHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
-    singleDoor.position.set(0, doorHeight / 2, wallThickness / 2 + 2.5); // Mittig vor der Wand
+    singleDoor.position.set(0, doorHeight / 2 + 1, wallThickness / 2 + 2.5); // Mittig vor der Wand
     slidingDoorGroup.add(singleDoor);
   }
 
@@ -304,7 +304,7 @@ function addSlidingDoor(options) {
 
   const cover = createLoftFrenchElement(coverWidth, coverHeight, coverDepth, {
     x: 0,
-    y: options.Dürchgangshöhe + 4, // Position bündig über der Tür
+    y: options.Dürchgangshöhe + 5, // Position bündig über der Tür
     z: wallThickness / 2 + 2.5, // Bündig mit der Wand
   }, doorMaterial);
 

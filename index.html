@@ -213,17 +213,25 @@ function addSwingDoor(options) {
 
   // Create doors
   const doorGroup = new THREE.Group();
-  
-  const doorLeft = new THREE.Group();
-  createDoorWithGlassAndFrame(doorLeft, doorWidth, doorHeight, sprossenRows, sprossenCols, glassMaterial, sprosseMaterial);
-  doorLeft.position.set(-doorWidth / 2 - 0.2, doorHeight / 2 + 1, 0);
-  doorGroup.add(doorLeft);
 
   if (options.isDoubleDoor) {
+    // Linke Türhälfte
+    const doorLeft = new THREE.Group();
+    createDoorWithGlassAndFrame(doorLeft, doorWidth, doorHeight, sprossenRows, sprossenCols, glassMaterial, sprosseMaterial);
+    doorLeft.position.set(-doorWidth / 2 - 0.2, doorHeight / 2 + 1, 0);
+    doorGroup.add(doorLeft);
+
+    // Rechte Türhälfte
     const doorRight = new THREE.Group();
     createDoorWithGlassAndFrame(doorRight, doorWidth, doorHeight, sprossenRows, sprossenCols, glassMaterial, sprosseMaterial);
     doorRight.position.set(doorWidth / 2 + 0.2, doorHeight / 2 + 1, 0);
     doorGroup.add(doorRight);
+  } else {
+    // Einflügelige Tür in die Mitte setzen
+    const doorSingle = new THREE.Group();
+    createDoorWithGlassAndFrame(doorSingle, doorWidth, doorHeight, sprossenRows, sprossenCols, glassMaterial, sprosseMaterial);
+    doorSingle.position.set(0, doorHeight / 2 + 1, 0); // Mittig setzen
+    doorGroup.add(doorSingle);
   }
 
   // Group Zarge and Door

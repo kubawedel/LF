@@ -240,22 +240,41 @@ function addSwingDoor(options) {
   scene.add(currentElement);
 }
         
-// Schiebetür
+// Schiebetür mit Option für Doppelschiebetür
 function addSlidingDoor(options) {
   removeCurrentElement();
 
-  const doorWidth = options.Dürchgangsbreite + 2; // 2cm größer in der Breite
-  const doorHeight = options.Dürchgangshöhe + 1; // 1cm größer in der Höhe
+  const doorWidth = (options.Dürchgangsbreite + 2) / (options.isDoubleDoor ? 2 : 1); // Halbe Breite bei Doppelschiebetür
+  const doorHeight = options.Dürchgangshöhe + 1; // 1 cm größer in der Höhe
   const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, opacity: 0.5, transparent: true });
   const sprosseMaterial = new THREE.MeshStandardMaterial({ color: options.elementColor });
 
-  const slidingDoor = new THREE.Group();
-  createDoorWithGlassAndFrame(slidingDoor, doorWidth, doorHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
-  slidingDoor.position.set(0, doorHeight / 2, wallThickness / 2 + 3); // Vor der Wand
+  const slidingDoorGroup = new THREE.Group();
 
-  currentElement = slidingDoor;
+  if (options.isDoubleDoor) {
+    // Linke Türhälfte
+    const leftDoor = new THREE.Group();
+    createDoorWithGlassAndFrame(leftDoor, doorWidth, doorHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
+    leftDoor.position.set(-doorWidth / 2 - 1, doorHeight / 2, wallThickness / 2 + 3); // Verschiebung nach links
+    slidingDoorGroup.add(leftDoor);
+
+    // Rechte Türhälfte
+    const rightDoor = new THREE.Group();
+    createDoorWithGlassAndFrame(rightDoor, doorWidth, doorHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
+    rightDoor.position.set(doorWidth / 2 + 1, doorHeight / 2, wallThickness / 2 + 3); // Verschiebung nach rechts
+    slidingDoorGroup.add(rightDoor);
+  } else {
+    // Einflügelige Schiebetür mittig
+    const singleDoor = new THREE.Group();
+    createDoorWithGlassAndFrame(singleDoor, doorWidth, doorHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
+    singleDoor.position.set(0, doorHeight / 2, wallThickness / 2 + 3); // Mittig vor der Wand
+    slidingDoorGroup.add(singleDoor);
+  }
+
+  currentElement = slidingDoorGroup;
   scene.add(currentElement);
 }
+
 
 // Trennwand
 function addTrennwand(options) {
@@ -285,7 +304,7 @@ const options = {
   zargeType: 'standard',
   sprossenRows: 2,
   sprossenCols: 2,
-  doorType: 'single', // Neue Option: 'single' oder 'double'
+  doorType: 'single', // 'single' oder 'double' für Drehtür & Schiebetür
 };
 
 // Add controls
@@ -367,24 +386,10 @@ function removeDoorTypeControl() {
 
 // Toggle Door Type control visibility based on elementType
 function toggleDoorTypeControl(elementType) {
-  if (elementType === 'Drehtür' && !doorTypeControl) {
+  if ((elementType === 'Drehtür' || elementType === 'Schiebetür') && !doorTypeControl) {
     addDoorTypeControl();
-  } else if (elementType !== 'Drehtür') {
+  } else if (elementType !== 'Drehtür' && elementType !== 'Schiebetür') {
     removeDoorTypeControl();
-  }
-}
-
-// Update the current element based on selected options
-function updateElement() {
-  if (options.elementType === 'none') {
-    removeCurrentElement();
-  } else if (options.elementType === 'Drehtür') {
-    options.isDoubleDoor = options.doorType === 'double';
-    addSwingDoor(options);
-  } else if (options.elementType === 'Schiebetür') {
-    addSlidingDoor(options);
-  } else if (options.elementType === 'Trennwand') {
-    addTrennwand(options);
   }
 }
 

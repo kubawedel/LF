@@ -262,7 +262,7 @@ function addSlidingDoor(options) {
     // Rechte Türhälfte
     const rightDoor = new THREE.Group();
     createDoorWithGlassAndFrame(rightDoor, doorWidth, doorHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
-    rightDoor.position.set(doorWidth / 2 - 0.1, doorHeight / 2, wallThickness / 2 + 3); // Verschiebung nach rechts
+    rightDoor.position.set(doorWidth / 2 + 0.1, doorHeight / 2, wallThickness / 2 + 3); // Verschiebung nach rechts
     slidingDoorGroup.add(rightDoor);
   } else {
     // Einflügelige Schiebetür mittig

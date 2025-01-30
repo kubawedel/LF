@@ -304,7 +304,7 @@ const options = {
   zargeType: 'standard',
   sprossenRows: 2,
   sprossenCols: 2,
-  doorType: 'single', // 'single' oder 'double' für Drehtür & Schiebetür
+  doorType: 'single', // Neue Option: 'single' oder 'double'
 };
 
 // Add controls
@@ -386,10 +386,24 @@ function removeDoorTypeControl() {
 
 // Toggle Door Type control visibility based on elementType
 function toggleDoorTypeControl(elementType) {
-  if ((elementType === 'Drehtür' || elementType === 'Schiebetür') && !doorTypeControl) {
+  if (elementType === 'Drehtür' && !doorTypeControl) {
     addDoorTypeControl();
-  } else if (elementType !== 'Drehtür' && elementType !== 'Schiebetür') {
+  } else if (elementType !== 'Drehtür') {
     removeDoorTypeControl();
+  }
+}
+
+// Update the current element based on selected options
+function updateElement() {
+  if (options.elementType === 'none') {
+    removeCurrentElement();
+  } else if (options.elementType === 'Drehtür') {
+    options.isDoubleDoor = options.doorType === 'double';
+    addSwingDoor(options);
+  } else if (options.elementType === 'Schiebetür') {
+    addSlidingDoor(options);
+  } else if (options.elementType === 'Trennwand') {
+    addTrennwand(options);
   }
 }
 
